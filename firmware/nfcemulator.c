@@ -15,7 +15,6 @@ limitations under the License.
 *****************************************************************************/
 
 #include <avr/io.h>
-#include <util/delay.h>
 #include "nfcemulator.h"
 
 static uint8_t RX_MASK[18] = {0, 1, 0, 2, 0, 4, 0, 8, 0, 16, 0, 32, 0, 64, 0, 128, 0, 0};
@@ -60,7 +59,7 @@ void setupNfcEmulator(uint8_t *storage, uint16_t storageSize)
 	//Interrupt Flag on Rising Output Edge (ACIS0, ACIS1)
 	ACSR = (0<<ACD) | (1<<ACIS0) | (1<<ACIS1);
 	
-	addCrc16(HLTA);
+	addCrc16(HLTA, 4);
 	addBcc(CT_UID1);
 	addBcc(UID2);
 	
@@ -98,28 +97,6 @@ void waitForBitend()
 	TIFR1 |= (1<<OCF1A);
 }
 
-#if (F_CPU == RFID_FREQU)
-void waitForOneBitTime()
-{
-	waitForBitend();
-}
-#elif (F_CPU == 22000000UL)
-//Skip every 17 bit times 1 cycle
-void waitForOneBitTime()
-{ 
-	if (rCount < 7)
-	{
-		OCR1AL = CLC_PBIT / 2 - 1;
-		rCount++;
-	}
-	else
-	{
-		OCR1AL = CLC_PBIT / 2 - 2;
-		rCount = 0;
-	}
-	waitForBitend();
-}
-#elif (F_CPU == 13592500UL)
 //Add every 6 bit times 1 cycle
 void waitForOneBitTime()
 {
@@ -135,9 +112,7 @@ void waitForOneBitTime()
 	}
 	waitForBitend();
 }
-#else
-#error "Not supported frequency, please add support if possible"
-#endif
+
 
 void txManchester(uint8_t *data, uint8_t length)
 {
@@ -203,7 +178,7 @@ void txManchester(uint8_t *data, uint8_t length)
 	DDRB &= ~(1<<2);
 }
 
-inline void resetRxFlags()
+void resetRxFlags()
 {
 	TCNT1 = 0;
 	TIFR1 |= (1<<OCF1A); //Clear Timer Overflow Flag 

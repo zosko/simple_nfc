@@ -14,8 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 *****************************************************************************/
 
-//#define F_CPU 13560000UL
-//#define F_CPU 22000000UL
+#define F_CPU 13592500UL
 
 #define RFID_FREQU 13560000UL
 #define CLC_PBIT (uint16_t)(128.0 * F_CPU / RFID_FREQU + 0.5)
@@ -38,3 +37,5 @@ limitations under the License.
 
 void setupNfcEmulator(uint8_t *storage, uint16_t storageSize);
 void checkForNfcReader();
+void addCrc16(uint8_t *Data, uint8_t Length);
+void addBcc(uint8_t *Data);
